@@ -1,7 +1,5 @@
 import os, json, re, pprint
 
-issues = []
-
 try:
     import cloudscraper
     scraper = cloudscraper.create_scraper()
@@ -24,31 +22,55 @@ def regexer(data):
 def requester(query):
     try:
         response = scraper.get('https://wpscan.com/_next/data/yGhSKJB8dSeuEsH5fOGT9/search.json?text='+ query).text
-        data = json.loads(response)
-        print (data)
         return response
     except:
         pass
     
-# def scanall():
-#     for conf in config:
-#         wp_project = conf['wp_project']
-#         wp_version = conf['wp_version']
+def workpress():
+    for conf in config:
+        wp_project = conf['wp_project']
+        wp_version = conf['wp_version']
+        wp_themes = conf['wp_themes']
+        wp_plugins = conf['wp_plugins']
         
-#         print (f'[>] Start checking project {wp_project}')
-#         try:
-#             print (f'     [*] Wordpress Version : {str(wp_version)}')
-#             # checkVersion = requester('Wordpress '+ str(wp_version))
-#             checkVersion = requester('Wordpress')
-#             if '"pageCount":"0"' in checkVersion:
-#                 print (f'     [*] vulnerability issue for Wordpress {str(wp_version)} not found.')
-#             else:
-#                 print (f'     [*] found vulnerability issue for Wordpress {str(wp_version)}.')
-#         except:
-#             print (f'[!] Fail to check project {wp_project}')
-#             return False
+        print (f'[!] Start checking project {wp_project}')
+        print (f'     [*] Wordpress Version : {str(wp_version)}')
+        print (f'     [*] Count Themes      : {len(wp_themes)}')
+        print (f'     [*] Count Plugins     : {len(wp_plugins)}')
+        
+        try:
+            print (f'\n     [%] Checking theme vulnerability issue')
+            for theme in wp_themes:
+                print (f'     [$] Theme Name : {theme}')
+                check = requester(theme)
+                if '"pageCount":"0"' in check:
+                    print (f'     [*] vulnerability issue for theme {theme} not found.\n')
+                else:
+                    data = json.loads(check)
+                    issues = data['pageProps']['pageData']['props']['data']
+                    print (f'     [*] found {len(issues)} vulnerability issue for {theme}.')
+                    for issue in issues:
+                        print(f'        @> {issue["title"]}')
+        except:
+            print (f'[!] Fail to check project {wp_project}')
+            return False
+        
+        try:
+            print (f'\n     [%] Checking plugins vulnerability issue')
+            for plugin in wp_plugins:
+                print (f'     [$] Plugin Name : {plugin}')
+                check = requester(plugin)
+                if '"pageCount":"0"' in check:
+                    print (f'     [*] vulnerability issue for plugin {plugin} not found.\n')
+                else:
+                    data = json.loads(check)
+                    issues = data['pageProps']['pageData']['props']['data']
+                    print (f'     [*] found {len(issues)} vulnerability issue for {plugin}.')
+                    for issue in issues:
+                        print(f'        @> {issue["title"]}')
+        except:
+            print (f'[!] Fail to check project {wp_project}')
+            return False
         
     
-# scanall()
-
-requester('wordpress')
+workpress()
